@@ -1,0 +1,162 @@
+# Hex City Planner - Project Context
+
+## Problem Definition
+Civilization 7 players need to optimize city building placement while considering:
+1. Complex adjacency bonuses between buildings and terrain
+2. Future building availability and placement
+3. Terrain constraints and features
+4. Limited building slots (up to 2 buildings per tile)
+5. Multiple yield types (culture, happiness, food, gold, science, production)
+
+The challenge is that early building placement decisions significantly impact late-game optimization potential. Players need a tool to plan ahead and maximize yields across all buildings they might construct.
+
+## City Structure
+- Each city consists of a central hex (city center) and three rings around it
+- First ring: 6 hexes
+- Second ring: 12 hexes
+- Third ring: 18 hexes
+- Total: 37 hexes
+
+### Hex Properties
+Each hex can have:
+- Base terrain type (Grassland, Plains, Desert, etc.)
+- Terrain variation (Flat, Rough, Mountainous)
+- Features (Forest, Marsh, etc.)
+- Water status (Fresh water availability)
+- Up to 2 buildings in a "quarter" formation
+- Natural wonders (which affect nearby tiles)
+
+### Building System
+Buildings have:
+- Age restrictions (antiquity, exploration, modern, ageless)
+- Base yields (culture, happiness, food, gold, science, production)
+- Tech/civic requirements
+- Placement requirements (terrain types, features needed)
+- Adjacency bonuses
+- Quarter formation compatibility
+
+## Solution Approach
+
+### Data Management
+1. JSON-based data storage for:
+   - Terrain types and variations
+   - Building properties and requirements
+   - Natural and buildable wonders
+   - Features and their effects
+
+2. Data validation and display utilities for:
+   - Reviewing terrain configurations
+   - Checking building properties
+   - Validating wonder effects
+
+### Core Functionality
+1. City Layout Management
+   - Hex grid representation
+   - Adjacency calculations
+   - Building placement validation
+   - Yield calculations
+
+2. Building Placement Optimization (To Be Implemented)
+   - Consider all valid building locations
+   - Calculate total yields including adjacency
+   - Look ahead for future building potential
+   - Handle user constraints (existing buildings)
+   - Support different optimization priorities
+
+3. User Interface (Planned)
+   - Input city terrain layout
+   - Specify available/planned buildings
+   - Set optimization priorities
+   - View and modify suggestions
+
+## Technical Stack
+- Backend: Python with Flask
+- Data Storage: JSON files
+- Testing: pytest
+- Frontend (planned): React with TypeScript
+
+## Development Phases
+1. Phase 1 (Current)
+   - Core data structures
+   - City layout representation
+   - Basic building placement
+   - Adjacency calculations
+
+2. Phase 2 (Next)
+   - Building yield calculations
+   - Placement validation
+   - Initial optimization algorithm
+
+3. Phase 3 (Planned)
+   - Web interface
+   - User input handling
+   - Result visualization
+
+4. Phase 4 (Future)
+   - Advanced optimization features
+   - Policy effects
+   - Save/load functionality
+
+## Key Decisions Made
+1. Using JSON for data storage due to:
+   - Human readability and editability
+   - Easy version control
+   - Simple schema updates
+
+2. Implementing hex grid with ring/index coordinates because:
+   - Intuitive for city layout
+   - Efficient adjacency calculations
+   - Easy to validate positions
+
+3. Python backend chosen for:
+   - Rich ecosystem for optimization
+   - Easy testing setup
+   - Good JSON handling
+
+## Current Implementation Details
+1. Adjacency System
+   - Center connects to all ring 1
+   - Ring 1 connects to center, 2 ring 1 tiles, 3 ring 2 tiles
+   - Ring 2 connects to 1 ring 1 tile, 2 ring 2 tiles, 3 ring 3 tiles
+   - Ring 3 connects to 1 ring 2 tile, 2 ring 3 tiles
+
+2. Validation System
+   - Terrain compatibility
+   - Feature requirements
+   - Fresh water needs
+   - Quarter formation rules
+
+## Next Major Decisions Needed
+1. Optimization Algorithm Choice
+   - Whether to use greedy vs global optimization
+   - How to handle future building uncertainty
+   - Performance vs optimality tradeoffs
+
+2. Yield Calculation System
+   - How to represent complex bonus interactions
+   - Policy effect implementation
+   - Quarter bonus calculations
+
+3. User Interface Design
+   - How to input city layout efficiently
+   - How to display optimization suggestions
+   - How to handle multiple optimization scenarios
+
+## Future Considerations
+1. Performance Optimization
+   - Caching strategies for calculations
+   - Efficient adjacency lookups
+   - Quick validation checks
+
+2. Feature Expansion
+   - Multiple cities optimization
+   - Policy system integration
+   - Wonder effects
+   - Era progression
+
+## Resources and References
+1. Project Repository: https://github.com/wheretheh3x/hex
+2. Key Files:
+   - backend/city_layout.py: Core layout functionality
+   - backend/rules/data/*.json: Game data
+   - tests/test_city_layout.py: Current test coverage

@@ -1,0 +1,80 @@
+{
+    "natural_wonders": {
+        "grand_canyon": {
+            "name": "Grand Canyon",
+            "size": 4,
+            "is_passable": false,
+            "base_yields_per_age": {
+                "culture": 2,
+                "happiness": 4
+            },
+            "settlement_effects": {
+                "flat_terrain": {
+                    "science": 2
+                }
+            },
+            "adjacency_effects": {}
+        },
+        "great_barrier_reef": {
+            "name": "Great Barrier Reef",
+            "size": 4,
+            "is_passable": true,
+            "base_yields_per_age": {
+                "food": 2,
+                "happiness": 2,
+                "science": 2
+            },
+            "settlement_effects": {},
+            "adjacency_effects": {
+                "marine": {
+                    "science": 2
+                }
+            }
+        }
+    },
+    "buildable_wonders": {
+        "pyramids": {
+            "name": "Pyramids",
+            "age": "antiquity",
+            "civilization": "Egyptian",
+            "base_yields": {
+                "gold": 1,
+                "production": 1
+            },
+            "placement_requirements": {
+                "terrain": ["desert"],
+                "adjacent_to": ["navigable_river"]
+            },
+            "city_effects": {
+                "tiles": {
+                    "conditions": ["minor_river", "navigable_river"],
+                    "yields": {
+                        "gold": 1,
+                        "production": 1
+                    }
+                }
+            }
+        },
+        "hanging_gardens": {
+            "name": "Hanging Gardens",
+            "age": "antiquity",
+            "civilization": null,
+            "base_yields": {},
+            "placement_requirements": {
+                "adjacent_to": ["river"]
+            },
+            "city_effects": {
+                "tiles": {
+                    "conditions": ["farm"],
+                    "yields": {
+                        "food": 1
+                    }
+                },
+                "growth_rate_bonus": 10,
+                "attribute_points": {
+                    "expansionist": 1
+                }
+            }
+        }
+    }
+}

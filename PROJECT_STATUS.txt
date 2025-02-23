@@ -1,0 +1,72 @@
+# Hex City Planner - Project Status
+
+## Current Project Structure
+```
+hex/
+├── backend/
+│   ├── __init__.py
+│   ├── app.py                 # Flask application (basic setup)
+│   ├── city_layout.py         # Core city layout functionality
+│   └── rules/
+│       ├── __init__.py
+│       ├── data/
+│       │   ├── terrain.json   # Complete terrain definitions
+│       │   ├── buildings.json # Initial building definitions
+│       │   └── wonders.json   # Initial wonder definitions
+│       ├── data_schema.py     # Data structure definitions
+│       ├── data_utils.py      # Data display utilities
+│       └── schema.py          # Core schema definitions
+├── frontend/                  # Placeholder for future web interface
+├── tests/
+│   ├── __init__.py
+│   └── test_city_layout.py   # Core functionality tests
+└── requirements.txt
+```
+
+## Completed Features
+1. Data Structure & Storage
+   - ✓ Terrain types and variations defined
+   - ✓ Building data structure created
+   - ✓ Natural and buildable wonders structure defined
+   - ✓ Data display utilities implemented
+
+2. City Layout Core
+   - ✓ Basic hex grid structure (center + 3 rings)
+   - ✓ Correct adjacency patterns implemented
+   - ✓ Basic building placement logic
+   - ✓ Initial validation rules
+
+3. Testing
+   - ✓ Grid initialization tests
+   - ✓ Terrain setting tests
+   - ✓ Building placement tests
+   - ✓ Adjacency pattern tests
+   - ✓ Validation rule tests
+
+## Next Steps (Prioritized)
+1. Building System
+   - [ ] Complete building yield calculations
+   - [ ] Implement district constraints
+   - [ ] Add policy and era effects
+
+2. Optimization Algorithm
+   - [ ] Define optimization objectives
+   - [ ] Implement basic placement optimizer
+   - [ ] Add look-ahead for future buildings
+   - [ ] Add user constraints handling
+
+3. Web Interface
+   - [ ] Design city layout input interface
+   - [ ] Create visualization system
+   - [ ] Implement result display
+   - [ ] Add user interaction features
+
+## Current Challenges/Decisions Needed
+1. How to handle policy effects on building yields
+2. Best approach for optimization algorithm (greedy vs global optimization)
+3. How to represent and validate complex building requirements
+
+## Environment Setup
+1. Python 3.13.2
+2. Required packages: flask, flask-cors, numpy, pandas, pytest, black
+3. Development tools: VS Code, Git

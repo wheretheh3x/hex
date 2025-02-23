@@ -1,0 +1,91 @@
+# Hex City Planner - Development Notes
+
+## Technical Decisions & Rationale
+
+### City Layout System
+1. Hex Grid Structure
+   - Center tile (ring 0) + 3 rings (6, 12, 18 tiles)
+   - Position system uses (ring, index) coordinates
+   - Clockwise indexing from top
+   - Rationale: Simple to understand and maintain, efficient for adjacency calculations
+
+2. Adjacency Patterns
+   ```
+   Center (ring 0): 
+   - Adjacent to all 6 tiles in ring 1
+   
+   Ring 1:
+   - Adjacent to center
+   - Adjacent to 2 other Ring 1 tiles
+   - Adjacent to 3 Ring 2 tiles
+   
+   Ring 2:
+   - Adjacent to 1 Ring 1 tile
+   - Adjacent to 2 other Ring 2 tiles
+   - Adjacent to 3 Ring 3 tiles
+   
+   Ring 3:
+   - Adjacent to 1 Ring 2 tile
+   - Adjacent to 2 other Ring 3 tiles
+   ```
+
+3. Building Placement Rules
+   - Maximum 2 buildings per tile
+   - Buildings must be compatible to form quarters
+   - Must meet terrain and feature requirements
+   - Fresh water requirements checked
+
+### Data Structure Design
+1. Terrain System
+   - Base terrain types
+   - Variations (Flat, Rough, Mountainous)
+   - Features as separate layer
+   - Fresh water as tile property
+
+2. Building System
+   - Base yields
+   - Placement requirements
+   - Adjacency bonuses
+   - Quarter formation rules
+
+### Testing Strategy
+1. Unit Tests
+   - Grid initialization
+   - Terrain management
+   - Building placement
+   - Adjacency calculations
+   - Validation rules
+
+2. Planned Tests
+   - Yield calculations
+   - Optimization results
+   - Complex placement scenarios
+
+## Known Issues & Workarounds
+1. None currently documented
+
+## Future Considerations
+1. Performance Optimization
+   - Consider caching adjacency calculations
+   - Optimize yield calculations for frequent updates
+
+2. Extensibility
+   - Keep data structures flexible for new features
+   - Plan for policy system integration
+   - Consider mod support
+
+## Development Guidelines
+1. Code Organization
+   - Core logic in backend/
+   - Data definitions in rules/
+   - Tests mirror source structure
+
+2. Testing Requirements
+   - All core functionality must have tests
+   - Adjacency patterns need thorough validation
+   - Building placement rules need comprehensive coverage
+
+3. Documentation Standards
+   - Update PROJECT_STATUS.md for major changes
+   - Document technical decisions here
+   - Include rationale for significant changes

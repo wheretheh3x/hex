@@ -1,0 +1,322 @@
+{
+    "desert_flat": {
+        "biome": "Desert",
+        "variation": "Flat",
+        "is_water": false,
+        "base_yields": {
+            "food": 0,
+            "production": 0
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Oasis", "Steppe Sagebrush", "Floodplain"],
+        "movement_cost": 1,
+        "elevation_level": 1,
+        "additional_attributes": {
+            "can_be_irrigated": true
+        }
+    },
+    "desert_rough": {
+        "biome": "Desert",
+        "variation": "Rough",
+        "is_water": false,
+        "base_yields": {
+            "food": 0,
+            "production": 1
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River"],
+        "movement_cost": 2,
+        "elevation_level": 2,
+        "additional_attributes": {
+            "provides_defensive_bonus": true
+        }
+    },
+    "desert_mountainous": {
+        "biome": "Desert",
+        "variation": "Mountainous",
+        "is_water": false,
+        "base_yields": {
+            "production": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 3,
+        "elevation_level": 3,
+        "additional_attributes": {
+            "provides_defensive_bonus": true,
+            "blocks_line_of_sight": true,
+            "can_be_volcano": true
+        }
+    },
+    "grassland_flat": {
+        "biome": "Grassland",
+        "variation": "Flat",
+        "is_water": false,
+        "base_yields": {
+            "food": 2
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Marsh", "Forest", "Floodplain"],
+        "movement_cost": 1,
+        "elevation_level": 1,
+        "additional_attributes": {
+            "can_be_irrigated": true
+        }
+    },
+    "grassland_rough": {
+        "biome": "Grassland",
+        "variation": "Rough",
+        "is_water": false,
+        "base_yields": {
+            "food": 1,
+            "production": 1
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Forest"],
+        "movement_cost": 2,
+        "elevation_level": 2,
+        "additional_attributes": {
+            "provides_defensive_bonus": true
+        }
+    },
+    "grassland_mountainous": {
+        "biome": "Grassland",
+        "variation": "Mountainous",
+        "is_water": false,
+        "base_yields": {
+            "production": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 3,
+        "elevation_level": 3,
+        "additional_attributes": {
+            "provides_defensive_bonus": true,
+            "blocks_line_of_sight": true,
+            "can_be_volcano": true
+        }
+    },
+    "plains_flat": {
+        "biome": "Plains",
+        "variation": "Flat",
+        "is_water": false,
+        "base_yields": {
+            "food": 1,
+            "production": 1
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Watering Hole", "Savanna Woodland", "Floodplain"],
+        "movement_cost": 1,
+        "elevation_level": 1,
+        "additional_attributes": {
+            "can_be_irrigated": true
+        }
+    },
+    "plains_rough": {
+        "biome": "Plains",
+        "variation": "Rough",
+        "is_water": false,
+        "base_yields": {
+            "food": 1,
+            "production": 2
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Savanna Woodland"],
+        "movement_cost": 2,
+        "elevation_level": 2,
+        "additional_attributes": {
+            "provides_defensive_bonus": true
+        }
+    },
+    "plains_mountainous": {
+        "biome": "Plains",
+        "variation": "Mountainous",
+        "is_water": false,
+        "base_yields": {
+            "production": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 3,
+        "elevation_level": 3,
+        "additional_attributes": {
+            "provides_defensive_bonus": true,
+            "blocks_line_of_sight": true,
+            "can_be_volcano": true
+        }
+    },
+    "tropical_flat": {
+        "biome": "Tropical",
+        "variation": "Flat",
+        "is_water": false,
+        "base_yields": {
+            "food": 2,
+            "production": 0
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Mangrove", "Rainforest", "Floodplain"],
+        "movement_cost": 1,
+        "elevation_level": 1,
+        "additional_attributes": {
+            "can_be_irrigated": true
+        }
+    },
+    "tropical_rough": {
+        "biome": "Tropical",
+        "variation": "Rough",
+        "is_water": false,
+        "base_yields": {
+            "food": 1,
+            "production": 1
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Rainforest"],
+        "movement_cost": 2,
+        "elevation_level": 2,
+        "additional_attributes": {
+            "provides_defensive_bonus": true
+        }
+    },
+    "tropical_mountainous": {
+        "biome": "Tropical",
+        "variation": "Mountainous",
+        "is_water": false,
+        "base_yields": {
+            "production": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 3,
+        "elevation_level": 3,
+        "additional_attributes": {
+            "provides_defensive_bonus": true,
+            "blocks_line_of_sight": true,
+            "can_be_volcano": true
+        }
+    },
+    "tundra_flat": {
+        "biome": "Tundra",
+        "variation": "Flat",
+        "is_water": false,
+        "base_yields": {
+            "food": 1,
+            "production": 0
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Bog", "Taiga", "Floodplain"],
+        "movement_cost": 1,
+        "elevation_level": 1,
+        "additional_attributes": {
+            "can_be_irrigated": true
+        }
+    },
+    "tundra_rough": {
+        "biome": "Tundra",
+        "variation": "Rough",
+        "is_water": false,
+        "base_yields": {
+            "food": 0,
+            "production": 1
+        },
+        "is_buildable": true,
+        "valid_features": ["Minor River", "Taiga"],
+        "movement_cost": 2,
+        "elevation_level": 2,
+        "additional_attributes": {
+            "provides_defensive_bonus": true
+        }
+    },
+    "tundra_mountainous": {
+        "biome": "Tundra",
+        "variation": "Mountainous",
+        "is_water": false,
+        "base_yields": {
+            "production": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 3,
+        "elevation_level": 3,
+        "additional_attributes": {
+            "provides_defensive_bonus": true,
+            "blocks_line_of_sight": true,
+            "can_be_volcano": true
+        }
+    },
+    "coast": {
+        "biome": "Marine",
+        "variation": "Flat",
+        "is_water": true,
+        "marine_category": "Coastal",
+        "base_yields": {
+            "food": 1
+        },
+        "is_buildable": false,
+        "valid_features": ["Reef"],
+        "movement_cost": 1,
+        "elevation_level": 0,
+        "additional_attributes": {
+            "allows_naval_units": true,
+            "requires_embarking": true,
+            "connects_to_ocean": true
+        }
+    },
+    "open_ocean": {
+        "biome": "Marine",
+        "variation": "Flat",
+        "is_water": true,
+        "marine_category": "Open Ocean",
+        "base_yields": {
+            "food": 0
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 1,
+        "elevation_level": 0,
+        "additional_attributes": {
+            "allows_naval_units": true,
+            "requires_embarking": true,
+            "connects_to_ocean": true,
+            "separates_continents": true
+        }
+    },
+    "coastal_lake": {
+        "biome": "Marine",
+        "variation": "Flat",
+        "is_water": true,
+        "marine_category": "Coastal Lake",
+        "base_yields": {
+            "food": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 1,
+        "elevation_level": 0,
+        "additional_attributes": {
+            "allows_naval_units": true,
+            "requires_embarking": true,
+            "provides_fresh_water": true,
+            "connects_to_ocean": false
+        }
+    },
+    "navigable_river": {
+        "biome": "Marine",
+        "variation": "Flat",
+        "is_water": true,
+        "marine_category": "Navigable River",
+        "base_yields": {
+            "food": 1
+        },
+        "is_buildable": false,
+        "valid_features": [],
+        "movement_cost": 1,
+        "elevation_level": 0,
+        "additional_attributes": {
+            "allows_naval_units": true,
+            "requires_embarking": true,
+            "provides_fresh_water": true,
+            "connects_to_ocean": true,
+            "provides_river_crossing": true
+        }
+    }
+}
