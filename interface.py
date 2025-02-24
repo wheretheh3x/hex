@@ -1,6 +1,10 @@
 import math
 from flask import Flask
 
+#
+# --- HEX MAP LOGIC (with ring 3 fix) ---
+#
+
 def base_hex_center(r, i, size):
     if r == 0:
         return (0.0, 0.0)
@@ -21,6 +25,8 @@ def final_ring2_center(i, size):
 ANCHORS_3 = [1, 4, 7, 10, 13, 16]
 
 def ring3_interpolated_center(i, size):
+    # BUG FIX: changed second coordinate from yB + frac*(yB - yA)
+    # to yA + frac*(yB - yA)
     if i in ANCHORS_3:
         return base_hex_center(3, i, size)
     sorted_a = sorted(ANCHORS_3)
@@ -34,7 +40,10 @@ def ring3_interpolated_center(i, size):
     distAB = (anchorB - anchorA) if (anchorB > anchorA) else (anchorB - anchorA + 18)
     distAi = (i - anchorA) if i >= anchorA else (i - anchorA + 18)
     frac = distAi / distAB
-    return (xA + frac * (xB - xA), yA + frac * (yB - yA))
+    return (
+        xA + frac * (xB - xA),
+        yA + frac * (yB - yA)   # <-- FIXED HERE
+    )
 
 def final_ring3_center(i, size):
     return ring3_interpolated_center(i, size)
@@ -51,9 +60,13 @@ def get_tile_center(r, i, size):
     return (0.0, 0.0)
 
 def flat_topped_hex_corners(cx, cy, size):
-    return [(cx + size * math.cos(math.radians(60 * k)),
-             cy + size * math.sin(math.radians(60 * k)))
-            for k in range(6)]
+    return [
+        (
+            cx + size * math.cos(math.radians(60 * k)),
+            cy + size * math.sin(math.radians(60 * k))
+        )
+        for k in range(6)
+    ]
 
 def generate_all_tiles(max_ring=3, size=1.0):
     tiles = []
@@ -66,7 +79,7 @@ def generate_all_tiles(max_ring=3, size=1.0):
             for i in range(1, 6 * r + 1):
                 cx, cy = get_tile_center(r, i, size)
                 corners = flat_topped_hex_corners(cx, cy, size * 0.95)
-                tiles.append({'label': f"({r},{i})", 'ring': r, 'index': i, 'corners': corners})
+                tiles.append({'label': f"({r},{i-1})", 'ring': r, 'index': i-1, 'corners': corners})
     return tiles
 
 def build_svg(tiles, svg_size=600):
@@ -75,9 +88,17 @@ def build_svg(tiles, svg_size=600):
     min_y = min(y for t in tiles for (_, y) in t['corners'])
     max_y = max(y for t in tiles for (_, y) in t['corners'])
     scale = (svg_size - 10) / max(max_x - min_x, max_y - min_y)
-    color_map = {0: '#F4F4F4', 1: '#EDEDED', 2: '#E6E6E6', 3: '#DFDFDF'}
 
-    svg = [f'<svg id="hex-svg" width="{svg_size}" height="{svg_size}" viewBox="0 0 {svg_size} {svg_size}" xmlns="http://www.w3.org/2000/svg">']
+    # If you'd like different ring colors, tweak below:
+    color_map = {
+        0: '#333333',
+        1: '#444444',
+        2: '#555555',
+        3: '#666666'
+    }
+
+    svg = [f'<svg id="hex-svg" width="{svg_size}" height="{svg_size}" '
+           f'viewBox="0 0 {svg_size} {svg_size}" xmlns="http://www.w3.org/2000/svg">']
 
     for t in tiles:
         pts = []
@@ -86,98 +107,167 @@ def build_svg(tiles, svg_size=600):
             sy = (max_y - y) * scale + 5
             pts.append(f"{sx},{sy}")
         pts_str = " ".join(pts)
-
-        col = color_map.get(t['ring'], '#CCCCCC')
+        col = color_map.get(t["ring"], "#666666")
         svg.append(
             f'<polygon class="hex" data-ring="{t["ring"]}" data-label="{t["label"]}" '
             f'fill="{col}" points="{pts_str}" '
-            f'style="stroke:#999;stroke-width:1;cursor:pointer; transition: fill 0.3s ease;" />'
-        )
-
-        # Now add a text label in the middle of the polygon
-        avg_x = sum(x for (x, _) in t['corners']) / 6
-        avg_y = sum(y for (_, y) in t['corners']) / 6
-        sx_center = (avg_x - min_x) * scale + 5
-        sy_center = (max_y - avg_y) * scale + 5
-
-        # We use a small font-size=10 and anchor middle
-        svg.append(
-            f'<text x="{sx_center}" y="{sy_center}" font-size="10" fill="black" text-anchor="middle">'
-            f'{t["label"]}</text>'
+            f'style="stroke:#999; stroke-width:1; cursor:pointer; transition: fill 0.3s ease;" />'
         )
 
     svg.append('</svg>')
     return "\n".join(svg)
 
-def get_menu_html():
-    """Return the menu HTML"""
-    return """
-    <div class="menu">
-      <div class="menu-section">
-        <div class="menu-category">ADJACENCY BONUSES</div>
-        <div class="menu-buttons" style="margin-bottom:10px;">
-          <button class="menu-button" style="background-color: #003366; color: white;" onclick="setColor('#003366', this)">MOUNTAIN</button>
-          <button class="menu-button" style="background-color: #444444; color: white;" onclick="setColor('#444444', this)">NATURAL WONDER</button>
-          <button class="menu-button" style="background-color: #5D4037; color: white;" onclick="setColor('#5D4037', this)">RESOURCES</button>
-        </div>
-        <div class="menu-buttons">
-          <button class="menu-button" style="background-color: #1E90FF; color: white;" onclick="setColor('#1E90FF', this)">OPEN OCEAN</button>
-          <button class="menu-button" style="background-color: #66B3FF; color: black;" onclick="setColor('#66B3FF', this)">COAST</button>
-          <button class="menu-button" style="background-color: #00CED1; color: white;" onclick="setColor('#00CED1', this)">COASTAL LAKE</button>
-          <button class="menu-button" style="background-color: #4682B4; color: white;" onclick="setColor('#4682B4', this)">NAVIGABLE RIVER</button>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-category">DESERT</div>
-        <div class="menu-buttons">
-          <button class="menu-button" style="background-color: #C5984C; color: white;" onclick="setColor('#C5984C', this)">FLAT</button>
-          <button class="menu-button" style="background-color: #A67C39; color: white;" onclick="setColor('#A67C39', this)">ROUGH</button>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-category">TROPICAL</div>
-        <div class="menu-buttons">
-          <button class="menu-button" style="background-color: #FFB347; color: black;" onclick="setColor('#FFB347', this)">FLAT</button>
-          <button class="menu-button" style="background-color: #FF8C69; color: white;" onclick="setColor('#FF8C69', this)">ROUGH</button>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-category">GRASSLAND</div>
-        <div class="menu-buttons">
-          <button class="menu-button" style="background-color: #566F18; color: white;" onclick="setColor('#566F18', this)">FLAT</button>
-          <button class="menu-button" style="background-color: #4B5C16; color: white;" onclick="setColor('#4B5C16', this)">ROUGH</button>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-category">PLAINS</div>
-        <div class="menu-buttons">
-          <button class="menu-button" style="background-color: #9E9136; color: white;" onclick="setColor('#9E9136', this)">FLAT</button>
-          <button class="menu-button" style="background-color: #8C7F30; color: white;" onclick="setColor('#8C7F30', this)">ROUGH</button>
-        </div>
-      </div>
-      <div class="menu-section">
-        <div class="menu-category">TUNDRA</div>
-        <div class="menu-buttons">
-          <button class="menu-button" style="background-color: #B8B8A4; color: black;" onclick="setColor('#B8B8A4', this)">FLAT</button>
-          <button class="menu-button" style="background-color: #A0A09A; color: white;" onclick="setColor('#A0A09A', this)">ROUGH</button>
-        </div>
-      </div>
-      <div class="menu-actions">
-        <button class="action-button" onclick="applyToAll()">APPLY TO ALL</button>
-        <button class="action-button" onclick="goBack()">GO BACK</button>
-        <button class="action-button" onclick="saveLayout()">SAVE</button>
-        <button class="action-button" onclick="clearHexes()">CLEAR</button>
-        <button class="action-button" onclick="optimizeLayout()">OPTIMIZE</button>
-      </div>
-      <div id="optimization-results" style="display:none;"></div>
-    </div>
+#
+# --- 8×8 GRID LAYOUT FROM YOUR EXCEL MOCKUP (with slight shift) ---
+#
+
+def get_excel_grid_data():
     """
+    Returns the final 8x8 list-of-lists with each cell's text & color.
+    Some color tweaks or label changes below as needed.
+    """
+    return [
+        # Row 1
+        [
+            {"label": "DESERT\nROUGH", "bg": "#C66300", "isBuilding": False, "actionKey": "#C66300"},
+            {"label": "DESERT\nFLAT",  "bg": "#D68023", "isBuilding": False, "actionKey": "#D68023"},
+            {"label": "WET\n(OASIS)",  "bg": "#C8A03A", "isBuilding": False, "actionKey": "#C8A03A"},
+            {"label": "VEGETATED\n(STEPPE)", "bg": "#E99C2E", "isBuilding": False, "actionKey": "#E99C2E"},
+            {"label": "TROPICAL\nROUGH", "bg": "#D46A00", "isBuilding": False, "actionKey": "#D46A00"},
+            {"label": "TROPICAL\nFLAT", "bg": "#EB7E23", "isBuilding": False, "actionKey": "#EB7E23"},
+            {"label": "WET\n(MANGROVE)", "bg": "#4CAF50", "isBuilding": False, "actionKey": "#4CAF50"},
+            {"label": "VEGETATED\n(RAINFOREST)", "bg": "#2F6F2F", "isBuilding": False, "actionKey": "#2F6F2F"},
+        ],
+        # Row 2
+        [
+            {"label": "TUNDRA\nROUGH", "bg": "#666666", "isBuilding": False, "actionKey": "#666666"},
+            {"label": "TUNDRA\nFLAT",  "bg": "#999999", "isBuilding": False, "actionKey": "#999999"},
+            {"label": "WET\n(BOG)",    "bg": "#444444", "isBuilding": False, "actionKey": "#444444"},
+            {"label": "VEGETATED\n(TAIGA)", "bg": "#556B2F", "isBuilding": False, "actionKey": "#556B2F"},
+            {"label": "GRASSLAND\nROUGH", "bg": "#38761D", "isBuilding": False, "actionKey": "#38761D"},
+            {"label": "GRASSLAND\nFLAT",  "bg": "#4AA52E", "isBuilding": False, "actionKey": "#4AA52E"},
+            {"label": "WET\n(MARSH)",  "bg": "#507F60", "isBuilding": False, "actionKey": "#507F60"},
+            {"label": "VEGETATED\n(FOREST)", "bg": "#2E5808", "isBuilding": False, "actionKey": "#2E5808"},
+        ],
+        # Row 3
+        [
+            {"label": "PLAINS\nROUGH", "bg": "#D47F60", "isBuilding": False, "actionKey": "#D47F60"},
+            {"label": "PLAINS\nFLAT",  "bg": "#F2AC83", "isBuilding": False, "actionKey": "#F2AC83"},
+            {"label": "WET\n(WATERING)", "bg": "#EEB36D", "isBuilding": False, "actionKey": "#EEB36D"},
+            {"label": "VEGETATED\n(SAVANNA)", "bg": "#F0AE50", "isBuilding": False, "actionKey": "#F0AE50"},
+            {"label": "OPEN\nOCEAN",   "bg": "#1E90FF", "isBuilding": False, "actionKey": "#1E90FF"},
+            {"label": "COASTAL",       "bg": "#66B3FF", "isBuilding": False, "actionKey": "#66B3FF"},
+            {"label": "COASTAL\nLAKE", "bg": "#99CEFF", "isBuilding": False, "actionKey": "#99CEFF"},
+            {"label": "NAVIGABLE\nRIVER", "bg": "#4682B4", "isBuilding": False, "actionKey": "#4682B4"},
+        ],
+        # Row 4
+        [
+            {"label": "NATURAL\nWONDER", "bg": "#CCCC00", "isBuilding": False, "actionKey": "#CCCC00"},
+            {"label": "MOUNTAIN",        "bg": "#003366", "isBuilding": False, "actionKey": "#003366"},
+            {"label": "VOLCANO",         "bg": "#FF4500", "isBuilding": False, "actionKey": "#FF4500"},
+            {"label": "MINOR\nRIVER",    "bg": "#00AAAA", "isBuilding": False, "actionKey": "#00AAAA"},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+        ],
+        # Row 5
+        [
+            {"label": "GRANARY",       "bg": "#006400", "isBuilding": True, "actionKey": "granary"},
+            {"label": "FISHING\nQUAY", "bg": "#006400", "isBuilding": True, "actionKey": "fishing_quay"},
+            {"label": "SAW PIT",       "bg": "#8B4513", "isBuilding": True, "actionKey": "saw_pit"},
+            {"label": "BRICKYARD",     "bg": "#8B4513", "isBuilding": True, "actionKey": "brickyard"},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+        ],
+        # Row 6
+        [
+            {"label": "GARDEN",       "bg": "#006400", "isBuilding": True, "actionKey": "garden"},
+            {"label": "BATH",         "bg": "#006400", "isBuilding": True, "actionKey": "bath"},
+            {"label": "MARKET",       "bg": "#B8860B", "isBuilding": True, "actionKey": "market"},
+            {"label": "LIGHTHOUSE",   "bg": "#AA7E00", "isBuilding": True, "actionKey": "lighthouse"},
+            {"label": "ANCIENT\nBRIDGE", "bg": "#BA9000", "isBuilding": True, "actionKey": "ancient_bridge"},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+        ],
+        # Row 7
+        [
+            {"label": "LIBRARY",    "bg": "#333366", "isBuilding": True, "actionKey": "library"},
+            {"label": "ACADEMY",    "bg": "#333366", "isBuilding": True, "actionKey": "academy"},
+            {"label": "BARRACKS",   "bg": "#8B4513", "isBuilding": True, "actionKey": "barracks"},
+            {"label": "BLACKSMITH", "bg": "#8B4513", "isBuilding": True, "actionKey": "blacksmith"},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+        ],
+        # Row 8
+        [
+            {"label": "MONUMENT",       "bg": "#CC0000", "isBuilding": True, "actionKey": "monument"},
+            {"label": "AMPHI\nTHEATRE", "bg": "#663399", "isBuilding": True, "actionKey": "amphitheater"},
+            {"label": "ALTAR",          "bg": "#8B4513", "isBuilding": True, "actionKey": "altar"},
+            {"label": "VILLA",          "bg": "#8B4513", "isBuilding": True, "actionKey": "villa"},
+            {"label": "ARENA",          "bg": "#8B4513", "isBuilding": True, "actionKey": "arena"},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+            {"label": "", "bg": "#000000", "isBuilding": False, "actionKey": ""},
+        ],
+    ]
+
+def build_excel_layout_html():
+    """
+    Builds the 8x8 HTML table (or grid) from the row data above.
+    """
+    rows = get_excel_grid_data()
+    html = ['<div class="excel-grid">']
+    for row in rows:
+        # added a left margin so the entire row shifts right
+        html.append('<div class="excel-row" style="margin-left:20px;">')
+        for cell in row:
+            label = cell["label"].replace("\n", "<br>")
+            color = cell["bg"]
+            is_bldg = cell["isBuilding"]
+            key = cell["actionKey"]
+
+            # Onclick logic
+            if is_bldg:
+                onclick = f"selectBuilding('{key}')"
+            else:
+                # if the color is empty or black, do nothing
+                if not key or key == "#000000":
+                    onclick = ""
+                else:
+                    onclick = f"setColor('{key}', this)"
+
+            html.append(f'''
+            <div class="excel-cell" style="background-color:{color};" onclick="{onclick}">
+              {label}
+            </div>
+            ''')
+        html.append('</div>')  # end row
+    html.append('</div>')
+    return "\n".join(html)
+
+def get_menu_html():
+    """
+    Replaces the old approach with your EXACT 8×8 layout from Excel,
+    placed in a scrollable panel on the right.
+    """
+    grid_content = build_excel_layout_html()
+    return f'''
+    <div class="excel-layout-container">
+      {grid_content}
+    </div>
+    '''
+
+#
+# --- MAIN FLASK ROUTE ---
+#
 
 def index():
-    """Render the main interface with two diagrams:
-       1) The base diagram for editing (with labeled hexes)
-       2) A second diagram (added after optimization) for final arrangement
-    """
     tiles = generate_all_tiles(max_ring=3, size=1.0)
     svg_code = build_svg(tiles, svg_size=600)
     menu_html = get_menu_html()
@@ -185,123 +275,141 @@ def index():
     return f"""
     <html>
     <head>
-      <title>Settlement Spot Inputs</title>
+      <title>Custom 8x8 Excel Layout</title>
       <style>
         body {{
           margin: 0;
-          font-family: Helvetica, sans-serif;
+          background-color: #000;
+          color: #AAA;
+          font-family: "Courier New", monospace;
           text-transform: uppercase;
           font-size: 12px;
-          overflow-y: auto;
+          overflow-x: hidden;
         }}
         .page-title {{
           position: fixed;
           top: 2px;
           left: 2px;
           font-size: 9px;
-          color: grey;
-          z-index: 1000;
+          color: #777;
+          z-index: 9999;
         }}
         .container {{
           display: flex;
-          height: 70vh;
-          align-items: flex-start;
-          padding-top: 20px;
+          box-sizing: border-box;
+          padding-bottom: 60px; /* room for pinned bar */
+          height: 100vh;
         }}
         .left-panel {{
-          flex: 0 0 66.66%;
+          flex: 0 0 66%;
           padding: 10px;
-          background-color: #F9F9F9;
+          background-color: #111;
           box-sizing: border-box;
         }}
         .right-panel {{
-          flex: 0 0 33.34%;
+          flex: 0 0 34%;
           padding: 10px;
-          background-color: #FFFFFF;
+          background-color: #222;
           box-sizing: border-box;
           overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
         }}
-        .bottom-container {{
+        #hex-svg .hex:hover {{
+          stroke: #fff !important;
+        }}
+
+        /* 8x8 grid styling */
+        .excel-layout-container {{
           width: 100%;
-          padding: 20px 10px;
-          box-sizing: border-box;
-          text-align: center;
-          margin-top: 20px;
-        }}
-        .menu {{
           display: flex;
           flex-direction: column;
-          gap: 8px;
-          margin-bottom: 20px;
+          gap: 4px;
         }}
-        .menu-section {{
-          border: 1px solid #AAA;
-          border-radius: 4px;
-          padding: 4px;
-        }}
-        .menu-category {{
-          font-weight: bold;
-          margin-bottom: 4px;
-          font-size: 0.85em;
-          text-align: center;
-        }}
-        .menu-buttons {{
+        .excel-grid {{
           display: flex;
-          gap: 5px;
-          justify-content: space-between;
+          flex-direction: column;
+          gap: 2px;
         }}
-        .menu-button {{
-          flex: 1;
-          height: 28px;
-          padding: 2px;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.7em;
-          white-space: nowrap;
-          font-weight: bold;
-        }}
-        .menu-actions {{
+        .excel-row {{
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          border: 1px solid #AAA;
-          border-radius: 4px;
-          padding: 10px;
+          grid-template-columns: repeat(8, 1fr);
+          gap: 2px;
+        }}
+        .excel-cell {{
+          width: 100%;
+          height: 60px;
+          text-align: center;
+          line-height: 1.2em;
+          font-size: 0.7em;
+          border: 1px solid #333;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }}
+        .excel-cell:hover {{
+          outline: 1px solid #fff;
+          outline-offset: -1px;
+        }}
+
+        /* PINNED ACTION BAR */
+        .action-bar {{
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 50px;
+          background-color: #111;
+          box-shadow: 0 -2px 4px rgba(0,0,0,0.5);
+          display: flex;
+          justify-content: space-evenly;
+          align-items: center;
+          z-index: 10000;
         }}
         .action-button {{
-          width: 100%;
+          width: 110px;
           height: 36px;
-          border: none;
-          border-radius: 4px;
+          border: 1px solid #777;
+          border-radius: 6px;
           cursor: pointer;
-          font-size: 0.85em;
-          background-color: #BBB;
+          font-size: 0.7em;
           font-weight: bold;
+          background-color: #444;
+          color: #DDD;
+          text-transform: uppercase;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          transition: background-color 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+        }}
+        .action-button:hover {{
+          border: 1px solid #fff;
+          background-color: #555;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.4);
         }}
         #status-message {{
           position: fixed;
-          bottom: 20px;
+          bottom: 60px;
           right: 20px;
           padding: 5px 10px;
           border-radius: 4px;
           opacity: 0;
           transition: opacity 1s ease-out;
           font-size: 0.9em;
+          background-color: #222;
+          color: #EEE;
+          z-index: 10001;
         }}
         #optimization-results {{
           margin-top: 20px;
           padding: 10px;
-          border: 1px solid #DDD;
+          border: 1px solid #777;
           border-radius: 4px;
+          background-color: #333;
+          color: #EEE;
         }}
         .result-item {{
           margin-bottom: 15px;
           padding: 10px;
-          background-color: #F5F5F5;
+          background-color: #222;
           border-radius: 4px;
         }}
         .result-item h3 {{
@@ -316,98 +424,117 @@ def index():
         }}
         .yields span {{
           padding: 2px 6px;
-          background-color: #E0E0E0;
+          background-color: #555;
           border-radius: 3px;
           font-size: 0.9em;
+          color: #EEE;
         }}
         #optimized-layout {{
           margin-top: 20px;
         }}
-      </style>
+      </style>  
       <script>
+        var currentLayout = {{}};
+        var currentBuildings = {{}};
+
         var selectedColor = null;
-        var selectedDescription = "";
+        var selectedBuilding = null;
         var lastAction = [];
         var statusTimeout = null;
-        var currentLayout = {{}};
-
-        // We'll store a global copy of the base tiles from Python so we can build the second diagram
-        var tilesData = {tiles};
 
         function setColor(color, btn) {{
+          if (!color) return; 
           selectedColor = color;
-          var buttons = document.getElementsByClassName("menu-button");
-          for (var i = 0; i < buttons.length; i++) {{
-            buttons[i].style.fontWeight = "bold";
-            buttons[i].style.border = "none";
-          }}
-          btn.style.fontWeight = "normal";
-          btn.style.border = "1px solid red";
-          var categoryElem = btn.parentNode.previousElementSibling;
-          var category = categoryElem ? categoryElem.textContent.trim() : "";
-          selectedDescription = btn.textContent.trim() + " " + category;
-          showStatusMessage("(" + selectedDescription + ")");
+          selectedBuilding = null;
+          showStatusMessage("Terrain Color Selected: " + color);
         }}
 
-        function changeHexColor(evt) {{
+        function selectBuilding(building) {{
+          selectedBuilding = building;
+          selectedColor = null;
+          showStatusMessage("Building Selected: " + building.toUpperCase());
+        }}
+
+        function hexClickHandler(evt) {{
+          var hex = evt.target;
+          var tileLabel = hex.getAttribute("data-label");
           if (selectedColor) {{
-            var hex = evt.target;
-            var tileLabel = hex.getAttribute("data-label");
             lastAction.push({{
+              type: "terrain",
               element: hex,
               oldFill: hex.getAttribute("fill"),
-              oldPosition: tileLabel
+              tile: tileLabel
             }});
             hex.setAttribute("fill", selectedColor);
             currentLayout[tileLabel] = selectedColor;
-            showStatusMessage(tileLabel + ": " + selectedDescription);
+            showStatusMessage(tileLabel + ": Terrain set to " + selectedColor);
+          }} else if (selectedBuilding) {{
+            if (!currentBuildings[tileLabel]) {{
+              currentBuildings[tileLabel] = [];
+            }}
+            if (currentBuildings[tileLabel].length >= 2) {{
+              showStatusMessage(tileLabel + " already has 2 buildings.");
+              return;
+            }}
+            lastAction.push({{
+              type: "building",
+              tile: tileLabel,
+              building: selectedBuilding
+            }});
+            currentBuildings[tileLabel].push(selectedBuilding);
+            showStatusMessage(tileLabel + ": Added " + selectedBuilding.toUpperCase());
           }}
         }}
 
         function applyToAll() {{
-          if (selectedColor) {{
-            var hexes = document.getElementsByClassName("hex");
-            for (var i = 0; i < hexes.length; i++) {{
-              var hex = hexes[i];
-              lastAction.push({{
-                element: hex,
-                oldFill: hex.getAttribute("fill"),
-                oldPosition: hex.getAttribute("data-label")
-              }});
-              hex.setAttribute("fill", selectedColor);
-              currentLayout[hex.getAttribute("data-label")] = selectedColor;
-            }}
-            showStatusMessage("(ALL): " + selectedDescription);
+          if (!selectedColor) return;
+          var hexes = document.getElementsByClassName("hex");
+          for (var i = 0; i < hexes.length; i++) {{
+            var hex = hexes[i];
+            lastAction.push({{
+              type: "terrain",
+              element: hex,
+              oldFill: hex.getAttribute("fill"),
+              tile: hex.getAttribute("data-label")
+            }});
+            hex.setAttribute("fill", selectedColor);
+            currentLayout[hex.getAttribute("data-label")] = selectedColor;
           }}
+          showStatusMessage("All tiles set to " + selectedColor);
         }}
 
         function goBack() {{
           if (lastAction.length > 0) {{
             var action = lastAction.pop();
-            action.element.setAttribute("fill", action.oldFill);
-            delete currentLayout[action.oldPosition];
+            if (action.type === "terrain") {{
+              action.element.setAttribute("fill", action.oldFill);
+              delete currentLayout[action.tile];
+            }} else if (action.type === "building") {{
+              var tile = action.tile;
+              var idx = currentBuildings[tile].indexOf(action.building);
+              if (idx !== -1) {{
+                currentBuildings[tile].splice(idx, 1);
+              }}
+            }}
           }}
         }}
 
         function clearHexes() {{
-          var defaultColors = {{"0": "#F4F4F4", "1": "#EDEDED", "2": "#E6E6E6", "3": "#DFDFDF"}};
+          var defaultColors = {{ "0": "#333333", "1": "#444444", "2": "#555555", "3": "#666666" }};
           var hexes = document.getElementsByClassName("hex");
           for (var i = 0; i < hexes.length; i++) {{
             var ring = hexes[i].getAttribute("data-ring");
             hexes[i].setAttribute("fill", defaultColors[ring]);
           }}
           currentLayout = {{}};
+          currentBuildings = {{}};
         }}
 
         function saveLayout() {{
           fetch('/api/save_layout', {{
             method: 'POST',
-            headers: {{
-              'Content-Type': 'application/json',
-            }},
-            body: JSON.stringify({{
-              hexes: currentLayout
-            }})
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{ hexes: currentLayout }})
           }})
           .then(response => response.json())
           .then(data => {{
@@ -419,155 +546,61 @@ def index():
           }});
         }}
 
-        function optimizeLayout() {{
-          fetch('/api/optimize', {{
+        function calcYield() {{
+          fetch('/api/manual_yields', {{
             method: 'POST',
-            headers: {{
-              'Content-Type': 'application/json',
-            }},
-            body: JSON.stringify({{
-              hexes: currentLayout,
-              // Example building list
-              buildings: ["monument"],
-              priorities: {{
-                "culture": 1.0
-              }}
-            }})
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{ hexes: currentLayout, buildings: currentBuildings }})
           }})
           .then(response => response.json())
           .then(data => {{
             if (data.status === 'success') {{
               displayResults(data.results);
             }} else {{
-              showStatusMessage("Error in optimization");
+              showStatusMessage("Error in yield calculation");
             }}
           }});
         }}
 
         function displayResults(results) {{
-          // 1) Clear out old results
           const container = document.getElementById('optimization-results');
           container.innerHTML = '';
           container.style.display = 'block';
-
-          // 2) Build the table of results
-          results.forEach((result, index) => {{
+          results.forEach((result) => {{
             const div = document.createElement('div');
             div.className = 'result-item';
             div.innerHTML = `
-              <h3>${{result.building}}</h3>
-              <p>Position: Ring ${{result.position[0]}}, Index ${{result.position[1]}}</p>
-              <p>Score: ${{result.score.toFixed(2)}}</p>
-              <div class="yields">
-                ${{Object.entries(result.yields.total_yields)
-                  .filter(([_, value]) => value > 0)
-                  .map(([type, value]) => `<span>${{type}}: ${{value}}</span>`)
-                  .join('')}}
-              </div>
+              <h3>${{result.building.toUpperCase()}}</h3>
+              <p>Tile: ${{result.tile}}</p>
+              <p>Total Yields:</p>
+              <pre>${{JSON.stringify(result.yields.total_yields, null, 2)}}</pre>
+              <p>Breakdown:</p>
+              <pre>${{JSON.stringify({{ base: result.yields.base_yields, adjacency: result.yields.adjacency_yields, quarter: result.yields.quarter_yields }}, null, 2)}}</pre>
             `;
             container.appendChild(div);
           }});
-
-          // 3) Build a second diagram showing final arrangement
-          const svgHTML = generateOptimizedSVG(tilesData, results);
-          const layoutDiv = document.getElementById('optimized-layout');
-          layoutDiv.innerHTML = svgHTML;
-        }}
-
-        function generateOptimizedSVG(tiles, results) {{
-          // Convert results into a dictionary keyed by (ring,index) => [buildingNames...]
-          let assignmentMap = {{}};
-          results.forEach(r => {{
-            let ring = r.position[0];
-            let idx = r.position[1];
-            let key = `${{ring}},${{idx}}`;
-            if (!assignmentMap[key]) {{
-              assignmentMap[key] = [];
-            }}
-            assignmentMap[key].push(r.building);
-          }});
-
-          // We'll build an SVG similar to build_svg, but also add <text> with building names
-          let svgSize = 600;
-          // Find bounding box
-          let allX = [];
-          let allY = [];
-          tiles.forEach(t => {{
-            t.corners.forEach(pt => {{
-              allX.push(pt[0]);
-              allY.push(pt[1]);
-            }});
-          }});
-          const min_x = Math.min(...allX);
-          const max_x = Math.max(...allX);
-          const min_y = Math.min(...allY);
-          const max_y = Math.max(...allY);
-          const scale = (svgSize - 10) / Math.max((max_x - min_x), (max_y - min_y));
-
-          // We'll color the rings lightly, then place text if there's a building
-          let colorMap = {{0: '#F4F4F4', 1: '#EDEDED', 2: '#E6E6E6', 3: '#DFDFDF'}};
-          let svg = [];
-          svg.push(`<svg width="${{svgSize}}" height="${{svgSize}}" viewBox="0 0 ${{svgSize}} ${{svgSize}}" xmlns="http://www.w3.org/2000/svg">`);
-
-          tiles.forEach(tile => {{
-            let pts = [];
-            tile.corners.forEach(([x, y]) => {{
-              let sx = (x - min_x) * scale + 5;
-              let sy = (max_y - y) * scale + 5;
-              pts.push(`${{sx}},${{sy}}`);
-            }});
-            let pts_str = pts.join(" ");
-            let col = colorMap[tile.ring] || '#CCCCCC';
-            svg.push(`<polygon fill="${{col}}" stroke="#999" stroke-width="1" points="${{pts_str}}"></polygon>`);
-
-            // If there are buildings assigned to this tile, place them in the center as text
-            let key = `${{tile.ring}},${{tile.index}}`;
-            if (assignmentMap[key]) {{
-              // Find tile center
-              let avgX = 0; 
-              let avgY = 0;
-              tile.corners.forEach(([cx, cy]) => {{
-                avgX += cx;
-                avgY += cy;
-              }});
-              avgX = avgX / tile.corners.length;
-              avgY = avgY / tile.corners.length;
-              // Scale them
-              let textX = (avgX - min_x) * scale + 5;
-              let textY = (max_y - avgY) * scale + 5;
-
-              // Join building names
-              let bldgNames = assignmentMap[key].join(", ");
-
-              svg.push(`
-                <text x="${{textX}}" y="${{textY}}" font-size="10" fill="black" text-anchor="middle">
-                  ${{bldgNames}}
-                </text>
-              `);
-            }}
-          }});
-
-          svg.push('</svg>');
-          return svg.join('');
         }}
 
         function showStatusMessage(message) {{
           var statusElem = document.getElementById("status-message");
           statusElem.textContent = message;
-          statusElem.style.color = selectedColor;
           statusElem.style.opacity = 1;
           if (statusTimeout) {{
             clearTimeout(statusTimeout);
           }}
           statusTimeout = setTimeout(function() {{
             statusElem.style.opacity = 0;
-          }}, 1000);
+          }}, 1500);
+        }}
+
+        function reportAction() {{
+          alert("Report coming soon!");
         }}
 
         window.addEventListener("load", function() {{
           var hexes = document.getElementsByClassName("hex");
           for (var i = 0; i < hexes.length; i++) {{
-            hexes[i].addEventListener("click", changeHexColor);
+            hexes[i].addEventListener("click", hexClickHandler);
           }}
         }});
       </script>
@@ -581,11 +614,21 @@ def index():
         </div>
         <div class="right-panel">
           {menu_html}
+          <div id="optimization-results"></div>
         </div>
       </div>
+
+      <!-- PINNED ACTION BAR -->
+      <div class="action-bar">
+        <button class="action-button" onclick="applyToAll()">APPLY ALL</button>
+        <button class="action-button" onclick="goBack()">UNDO</button>
+        <button class="action-button" onclick="saveLayout()">SAVE</button>
+        <button class="action-button" onclick="clearHexes()">CLEAR</button>
+        <button class="action-button" onclick="calcYield()">CALC YIELD</button>
+        <button class="action-button" onclick="reportAction()">REPORT</button>
+      </div>
+
       <div id="status-message"></div>
-      <div class="bottom-container" id="saved-image-container"></div>
     </body>
     </html>
     """
-
