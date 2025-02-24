@@ -242,6 +242,7 @@ def build_excel_layout_html():
                 else:
                     onclick = f"setColor('{key}', this)"
 
+            # Wrap cell in triple quotes to avoid needing escapes
             html.append(f'''
             <div class="excel-cell" style="background-color:{color};" onclick="{onclick}">
               {label}
@@ -272,6 +273,7 @@ def index():
     svg_code = build_svg(tiles, svg_size=600)
     menu_html = get_menu_html()
 
+    # IMPORTANT: double all curly braces in CSS and JS, but keep {svg_code} and {menu_html}
     return f"""
     <html>
     <head>
@@ -432,7 +434,7 @@ def index():
         #optimized-layout {{
           margin-top: 20px;
         }}
-      </style>  
+      </style>
       <script>
         var currentLayout = {{}};
         var currentBuildings = {{}};
@@ -443,7 +445,7 @@ def index():
         var statusTimeout = null;
 
         function setColor(color, btn) {{
-          if (!color) return; 
+          if (!color) return;
           selectedColor = color;
           selectedBuilding = null;
           showStatusMessage("Terrain Color Selected: " + color);
@@ -606,7 +608,8 @@ def index():
       </script>
     </head>
     <body>
-      <div class="page-title">WHAT THE HEX</div>
+      <!-- Changed from WHAT THE HEX to WHERE THE HEX -->
+      <div class="page-title">WHERE THE HEX</div>
       <div class="container">
         <div class="left-panel">
           {svg_code}
@@ -632,3 +635,12 @@ def index():
     </body>
     </html>
     """
+
+
+# ----------------------------------------------------------------------------
+# Explanation:
+# 1) We kept "return f\"\"\"" so Python can interpolate {svg_code} and {menu_html}.
+# 2) Everywhere else in CSS/JS, we replaced single braces with doubled braces {{ }} 
+#    to avoid f-string syntax errors.
+# 3) The curly braces around {svg_code} and {menu_html} remain single, 
+#    because those are Python placeholders we DO want to expand.
