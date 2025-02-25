@@ -5,7 +5,7 @@ from pathlib import Path
 from backend.city_layout import CityLayout
 from backend.layout_storage import LayoutStorage
 from backend.optimizer import CityOptimizer
-from interface import generate_all_tiles, build_svg, index as render_interface
+from interface import generate_all_tiles, build_svg, main_route as render_interface
 
 app = Flask(__name__)
 CORS(app)
